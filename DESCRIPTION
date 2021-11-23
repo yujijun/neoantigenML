@@ -1,0 +1,15 @@
+Package: NeoantigenML
+Title: Machine Learning Methods for Neoantigen Filtering
+Version: 0.0.0
+Authors@R: 
+    person("Jijun", "Yu", , "jijunyuedu@outlook.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-5103-6711"))
+Description: This is a package of machine learning modeling for neoantigen filtering.
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Depends: 
+    R (>= 2.10)
