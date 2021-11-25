@@ -1,8 +1,8 @@
 # This is a script for property of peptides.
-# Update Time:Thu Nov 25 15:04:36 2021
+# Update Time:Thu Nov 25 18:38:05 2021
 # Author: JijunYu
-#### based function #### 
-#' Title convert list into dataframe
+
+#### basic function #### 
 matrixintovector <- function(mat){
   df <- as.data.frame(mat) %>%
     rownames_to_column() %>% 
@@ -137,19 +137,6 @@ PropertyofPep <- function(peptides,
   
   all.df <- do.call(cbind.data.frame,property.list)
   rownames(all.df) <- peptides
-  # aaComp.pep <- listtodf(aaComp.pep)
-  # blosumIndices.pep <- listtodf(blosumIndices.pep)
-  # crucianiProperties.pep <- listtodf(crucianiProperties.pep)
-  # fasgaiVectors.pep <- listtodf(fasgaiVectors.pep)
-  # kideraFactors.pep <- listtodf(kideraFactors.pep)
-  # mswhimScores.pep <- listtodf(mswhimScores.pep)
-  # protFP.pep <- listtodf(protFP.pep)
-  # stScales.pep <- listtodf(stScales.pep)
-  # tScales.pep <- listtodf(tScales.pep)
-  # vhseScales.pep <- listtodf(vhseScales.pep)
-  # zScales.pep <- listtodf(zScales.pep)
   return(all.df)
 }
 
-#### property for single AA in peptides ####
-#aaDes.pep <- aaDescriptors(peptides)
