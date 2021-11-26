@@ -4,6 +4,7 @@
 # Author:JijunYu
 
 #### Preprocess of simulate datasets of neopeptides #####
+library(tidyverse)
 positive <- read.delim2("./data-raw/final.pos.neoantigens.filtered.tsv")
 negative <-  read.delim2("./data-raw/final.neg.neoantigens.filtered.tsv")
 positive.pep  <- positive %>%
@@ -12,5 +13,12 @@ positive.pep  <- positive %>%
 negative.pep <- negative %>%
   select(c(1,2,3)) %>%
   mutate(judge = 0)
-Neodataset <- rbind(positive.pep,negative.pep)
+Neodataset <- rbind(positive.pep,negative.pep) %>%
+  mutate(Length = str_length(wild_Peptide)) %>%
+  filter(Length == 9) %>%
+  distinct(wild_Peptide,.keep_all = TRUE)
 usethis::use_data(Neodataset,overwrite = T)
+
+#### example peptides ####
+peptides <- Neodataset$wild_Peptide
+usethis::use_data(peptides,overwrite = T)

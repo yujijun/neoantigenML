@@ -14,7 +14,10 @@
 4. document() 将更新的函数进行编译；
 5. 将更改提交到github.
 
-Attention:注意每次更改完函数之后一定要用document()提交编译.
+Attention:
+1. 注意每次更改完函数之后一定要用document()提交编译.
+2. 将main.r 函数不要放到 ./R folder 下面，编译过程会直接提交运行,将其单独放到main_running folder.
+3. 如果涉及到自己的写的函数之间的调用，注意使用source函数，写清楚相对路径.
 
 Reference:
 1. please refer to https://mlr3book.mlr-org.com/ for detail usage about mlr3. 

@@ -49,6 +49,7 @@ PropertyofPepSingle <- function(peptides,
                           pKscale.PI = "EMBOSS"){
   library(Peptides)
   library(tidyverse)
+  source("./R/base.r")
 
   data(AAdata)
   aaComp.pep <- aaComp(seq = peptides)  # A List + matrix: compose of AA
@@ -103,7 +104,7 @@ PropertyofPepSingle <- function(peptides,
   for(var in allvar){
     if(is.list(get(var)) == TRUE){
       # convert list into dataframe
-      assign(var, listtodf(get(var)))
+      assign(var, listtodf(get(var),name = peptides))
     }else if(is.vector(get(var)) == TRUE){
       # convert vector into dataframe
       vectortodf <- as.data.frame(get(var))

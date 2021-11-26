@@ -6,10 +6,16 @@
 #### Library and hyperparameter ####
 library(tidyverse)
 library(mlr3verse)
+output_path <- "./result"
 #### Original dataset input ####
+input1 <- peptides
 
-#### Data Preprocessing ####
 #### Property calculation ####
+output.property <- PropertyofPepSingle(peptides = peptides)
 #### Feature Selection ####
 #### Training ####
 #### Performance Evaluation and Comparison ####
+#### output ####
+write.csv(output.property,file = paste0(output_path,
+                                          output.property.csv),
+          quote = F)
