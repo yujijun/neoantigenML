@@ -1,6 +1,6 @@
-#' @title Length Statistics
-#' @param pepSeq a vector of sequence,which could get from by 
-#' @return ggbar A bar plot from ggpplot
+#' @title Visualization of length statistics in peptides.
+#' @param pepSeq a vector of sequence.
+#' @return ggbar A bar plot from ggpplot.
 #' @export
 #' @examples
 #' pepSeq <- Neodataset$wild_Peptide

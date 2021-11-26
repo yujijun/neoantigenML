@@ -54,7 +54,7 @@ listtodf <- function(datalist, name = peptides){
 #' unique()
 #' peptides <- unique(Neodataset.length$wild_Peptide) 
 #' PropertyofPep(peptides)
-PropertyofPep <- function(peptides,
+PropertyofPepSingle <- function(peptides,
                           autoCor = TRUE,
                           lag = 1,
                           property = AAdata$Hydrophobicity$KyteDoolittle,
