@@ -2,4 +2,4 @@
 
 export(PropertyofPepSingle)
 export(neoML)
-export(pepLength)
+export(pepVisLength)
