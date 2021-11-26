@@ -2,28 +2,6 @@
 # Update Time:Thu Nov 25 18:38:05 2021
 # Author: JijunYu
 
-#### basic function #### 
-matrixintovector <- function(mat){
-  df <- as.data.frame(mat) %>%
-    rownames_to_column() %>% 
-    tidyr::pivot_longer(cols = setdiff(colnames(.),"rowname"),
-                        names_to = "name",values_to = "value") %>%
-    mutate(vector_name = paste0(rowname,"_",name)) %>% 
-    select(c(value,vector_name))
-  vec <- df$value
-  names(vec) <- df$vector_name
-  return(vec)
-}
-listtodf <- function(datalist, name = peptides){
-  if(is.matrix(datalist[[1]]) == TRUE){
-    #convert matrix into vector with name
-    datalist <- map(datalist,matrixintovector)
-  }
-  names(datalist) <- name
-  df <- do.call(rbind.data.frame,datalist)
-  colnames(df) <- names(datalist[[1]])
-  return(df)
-}
 
 #### property for whole peptides ######
 #' Title Properties of whole peptides
@@ -48,11 +26,11 @@ listtodf <- function(datalist, name = peptides){
 #' @export
 #'
 #' @examples
-#' Neodataset.length <- Neodataset %>% 
-#' mutate(Length = str_length(wild_Peptide)) %>% 
-#' filter(Length == 9) %>% 
+#' Neodataset.length <- Neodataset %>%
+#' mutate(Length = str_length(wild_Peptide)) %>%
+#' filter(Length == 9) %>%
 #' unique()
-#' peptides <- unique(Neodataset.length$wild_Peptide) 
+#' peptides <- unique(Neodataset.length$wild_Peptide)
 #' PropertyofPep(peptides)
 PropertyofPepSingle <- function(peptides,
                           autoCor = TRUE,
@@ -71,9 +49,9 @@ PropertyofPepSingle <- function(peptides,
                           pKscale.PI = "EMBOSS"){
   library(Peptides)
   library(tidyverse)
-  
+
   data(AAdata)
-  aaComp.pep <- aaComp(seq = peptides)  # A List + matrix: compose of AA 
+  aaComp.pep <- aaComp(seq = peptides)  # A List + matrix: compose of AA
   aIndex.pep <- aIndex(seq = peptides) # A vector: thermal stability of proteins
   autoCorrelation.pep <- autoCorrelation(sequence = peptides,
                                          lag = lag,
@@ -98,7 +76,7 @@ PropertyofPepSingle <- function(peptides,
   hmoment.pep <- hmoment(seq = peptides) # A vector Compute the hydrophobic moment of a protein sequence
   hydrophobicity.pep <- hydrophobicity(seq = peptides,
                                        scale = scale) # A vector
-  instaIndex.pep <- instaIndex(seq =peptides) # A vector: Compute the instability index 
+  instaIndex.pep <- instaIndex(seq =peptides) # A vector: Compute the instability index
   kideraFactors.pep <- kideraFactors(seq = peptides) #A list + vector
   #membpos.pep <- membpos(seq = peptides) # A list :Compute theoretically the class of a protein sequence
   mswhimScores.pep <- mswhimScores(seq = peptides) # A list + a vector 36 electrostatic potential properties
@@ -106,19 +84,19 @@ PropertyofPepSingle <- function(peptides,
                monoisotopic = monoisotopic,
                avgScale = avgScale,
                label = "none",
-               aaShift = aaShift) # A vector 
+               aaShift = aaShift) # A vector
   mz.pep <- mz(seq = peptides,
                charge = charge,
-               aaShift = aaShift, 
+               aaShift = aaShift,
                cysteins = 57.021464) #A vector
-  pI.pep <- pI(seq = peptides, 
+  pI.pep <- pI(seq = peptides,
                pKscale = pKscale.PI) #A vector
   protFP.pep <- protFP(seq = peptides) # A list + a vector
   stScales.pep <- stScales(seq = peptides) # A list + a vector
   tScales.pep <- tScales(seq = peptides)# A list+ a vector
   vhseScales.pep <- vhseScales(seq = peptides)# A list+ a vector
   zScales.pep <- zScales(seq = peptides)# A list+ a vector
-  
+
   #### convert list into dataframe
   allvar <- grep(".pep",ls(),value = T)
   property.list <- list()
@@ -134,7 +112,7 @@ PropertyofPepSingle <- function(peptides,
     }
     property.list[[var]] <- get(var)
   }
-  
+
   all.df <- do.call(cbind.data.frame,property.list)
   rownames(all.df) <- peptides
   return(all.df)

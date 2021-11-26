@@ -60,10 +60,10 @@ a dataframe with all properties.
 Title Properties of whole peptides
 }
 \examples{
-Neodataset.length <- Neodataset \%>\% 
-mutate(Length = str_length(wild_Peptide)) \%>\% 
-filter(Length == 9) \%>\% 
+Neodataset.length <- Neodataset \%>\%
+mutate(Length = str_length(wild_Peptide)) \%>\%
+filter(Length == 9) \%>\%
 unique()
-peptides <- unique(Neodataset.length$wild_Peptide) 
+peptides <- unique(Neodataset.length$wild_Peptide)
 PropertyofPep(peptides)
 }
