@@ -4,4 +4,4 @@
 .httr-oauth
 .DS_Store
 reference
-./result/yjj/*
+result/yjj/*

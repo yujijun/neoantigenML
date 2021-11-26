@@ -14,6 +14,7 @@ output_path <- "./result/yjj/"
 output.property <- PropertyofPepSingle(peptides = peptides)
 #### Feature Selection ####
 #### Training ####
+Training.rpart <- neoML.rpart(MLtestData)
 #### Performance Evaluation and Comparison ####
 #### output ####
 write.csv(output.property,file = paste0(output_path,

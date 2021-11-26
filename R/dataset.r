@@ -22,3 +22,10 @@ usethis::use_data(Neodataset,overwrite = T)
 #### example peptides ####
 peptides <- Neodataset$wild_Peptide
 usethis::use_data(peptides,overwrite = T)
+
+#### ML example datasets ####
+MLtestData <- read.csv("./data-raw/output.property.csv")
+MLtestData <- MLtestData %>%
+  mutate(judge = as.factor(Neodataset$judge)) %>%
+  select(!X)
+usethis::use_data(MLtestData,overwrite = T)
