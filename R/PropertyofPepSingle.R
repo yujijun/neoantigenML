@@ -33,6 +33,17 @@
 #' peptides <- unique(Neodataset.length$wild_Peptide)
 #' PropertyofPep(peptides)
 PropertyofPepSingle <- function(peptides,
+                          PropAll = c("aaComp","aIndex",
+                                      "autoCorrelation","autoCovariance",
+                                      "blosumIndices","boman",
+                                      "charge","crossCovariance",
+                                      "crucianiProperties","fasgaiVectors",
+                                      "hmoment","hydrophobicity",
+                                      "instaIndex","kideraFactors",
+                                      "mswhimScores",
+                                      "mw","mz","pl","protFP",
+                                      "stScales","tScales","vhseScales",
+                                      "zScales"),
                           autoCor = TRUE,
                           lag = 1,
                           property = AAdata$Hydrophobicity$KyteDoolittle,
@@ -52,52 +63,96 @@ PropertyofPepSingle <- function(peptides,
   source("./R/base.r")
 
   data(AAdata)
-  aaComp.pep <- aaComp(seq = peptides)  # A List + matrix: compose of AA
-  aIndex.pep <- aIndex(seq = peptides) # A vector: thermal stability of proteins
-  autoCorrelation.pep <- autoCorrelation(sequence = peptides,
+  if("aaComp" %in%  PropAll) {
+    aaComp.pep <- aaComp(seq = peptides)  # A List + matrix: compose of AA
+  }
+  if("aIndex" %in%  PropAll){
+    aIndex.pep <- aIndex(seq = peptides) # A vector: thermal stability of proteins
+  }
+  if("autoCorrelation" %in% PropAll){
+    autoCorrelation.pep <- autoCorrelation(sequence = peptides,
+                                           lag = lag,
+                                           property = property,
+                                           center = center) # a vector
+  }
+  if("autoCovariance" %in% PropAll){
+    autoCovariance.pep <- autoCovariance(sequence = peptides,
                                          lag = lag,
                                          property = property,
                                          center = center) # a vector
-  autoCovariance.pep <- autoCovariance(sequence = peptides,
-                         lag = lag,
-                         property = property,
-                         center = center) # a vector
-  crossCovariance.pep <- crossCovariance(sequence = peptides,
-                                         lag = lag,
-                                         property1 = property1,
-                                         property2 = property2,
-                                         center = center) #
-  blosumIndices.pep <- blosumIndices(seq = peptides) # a list + vector
-  boman.pep <- boman(seq = peptides) # a vector:Potential Protein Interaction)
-  charge.pep <- charge(seq = peptides,
-                       pH = pH,
-                       pKscale = pKscale) #  A vector theoretical net charge
-  crucianiProperties.pep <- crucianiProperties(seq = peptides) # A list + vector
-  fasgaiVectors.pep <- fasgaiVectors(seq = peptides) #A list + vector
-  hmoment.pep <- hmoment(seq = peptides) # A vector Compute the hydrophobic moment of a protein sequence
-  hydrophobicity.pep <- hydrophobicity(seq = peptides,
-                                       scale = scale) # A vector
-  instaIndex.pep <- instaIndex(seq =peptides) # A vector: Compute the instability index
-  kideraFactors.pep <- kideraFactors(seq = peptides) #A list + vector
-  #membpos.pep <- membpos(seq = peptides) # A list :Compute theoretically the class of a protein sequence
-  mswhimScores.pep <- mswhimScores(seq = peptides) # A list + a vector 36 electrostatic potential properties
-  mw.pep <- mw(seq = peptides,
-               monoisotopic = monoisotopic,
-               avgScale = avgScale,
-               label = "none",
-               aaShift = aaShift) # A vector
-  mz.pep <- mz(seq = peptides,
-               charge = charge,
-               aaShift = aaShift,
-               cysteins = 57.021464) #A vector
-  pI.pep <- pI(seq = peptides,
-               pKscale = pKscale.PI) #A vector
-  protFP.pep <- protFP(seq = peptides) # A list + a vector
-  stScales.pep <- stScales(seq = peptides) # A list + a vector
-  tScales.pep <- tScales(seq = peptides)# A list+ a vector
-  vhseScales.pep <- vhseScales(seq = peptides)# A list+ a vector
-  zScales.pep <- zScales(seq = peptides)# A list+ a vector
-
+  }
+  if("crossCovariance" %in% PropAll){
+    crossCovariance.pep <- crossCovariance(sequence = peptides,
+                                           lag = lag,
+                                           property1 = property1,
+                                           property2 = property2,
+                                           center = center) #
+  }
+  if("blosumIndices" %in% PropAll){
+    blosumIndices.pep <- blosumIndices(seq = peptides) # a list + vector
+  }
+  if("boman" %in% PropAll){
+    boman.pep <- boman(seq = peptides) # a vector:Potential Protein Interaction)
+  }
+  if("charge" %in% PropAll){
+    charge.pep <- charge(seq = peptides,
+                         pH = pH,
+                         pKscale = pKscale) #  A vector theoretical net charge
+  }
+  if("crucianiProperties" %in% PropAll){
+    crucianiProperties.pep <- crucianiProperties(seq = peptides) # A list + vector
+  }
+  if("fasgaiVectors" %in% PropAll){
+    fasgaiVectors.pep <- fasgaiVectors(seq = peptides) #A list + vector
+  }
+  if("hmoment" %in% PropAll){
+    hmoment.pep <- hmoment(seq = peptides) # A vector Compute the hydrophobic moment of a protein sequence
+  }
+  if("hydrophobicity" %in% PropAll){
+    hydrophobicity.pep <- hydrophobicity(seq = peptides,
+                                         scale = scale) # A vector
+  }
+  if("instaIndex" %in% PropAll){
+    instaIndex.pep <- instaIndex(seq =peptides) # A vector: Compute the instability index
+  }
+  if("kideraFactors" %in% PropAll){
+    kideraFactors.pep <- kideraFactors(seq = peptides) #A list + vector
+  }
+  if("mswhimScores" %in% PropAll){
+    mswhimScores.pep <- mswhimScores(seq = peptides) # A list + a vector 36 electrostatic potential properties
+  }
+  if("mw" %in% PropAll){
+    mw.pep <- mw(seq = peptides,
+                 monoisotopic = monoisotopic,
+                 avgScale = avgScale,
+                 label = "none",
+                 aaShift = aaShift) # A vector
+  }
+  if("mz" %in% PropAll){
+    mz.pep <- mz(seq = peptides,
+                 charge = charge,
+                 aaShift = aaShift,
+                 cysteins = 57.021464) #A vector
+  }
+  if("pl" %in% PropAll){
+    pI.pep <- pI(seq = peptides,
+                 pKscale = pKscale.PI) #A vector
+  }
+  if("protFP" %in% PropAll){
+    protFP.pep <- protFP(seq = peptides) # A list + a vector
+  }
+  if("stScales" %in% PropAll){
+    stScales.pep <- stScales(seq = peptides) # A list + a vector
+  }
+  if("tScales" %in% PropAll){
+    tScales.pep <- tScales(seq = peptides)# A list+ a vector
+  }
+  if("vhseScales" %in% PropAll){
+    vhseScales.pep <- vhseScales(seq = peptides)# A list+ a vector
+  }
+  if("zScales" %in% PropAll){
+    zScales.pep <- zScales(seq = peptides)# A list+ a vector
+  }
   #### convert list into dataframe
   allvar <- grep(".pep",ls(),value = T)
   property.list <- list()

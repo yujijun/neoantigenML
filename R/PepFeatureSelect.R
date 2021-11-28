@@ -13,8 +13,172 @@
 ## Email: jijunyuedu@outlook.com
 ##
 ## Notes:
-##
+## Ref:https://mlr3book.mlr-org.com/optimization.html#fs
 #--------------Main -----------------------
 # Feature Selection by filter methods. ####
+#' Title
+#'
+#' @param dataset A dataframe of Machine Learing test dataset
+#' @param target A character of column name in dataset
+#' @param taskid A character of taskid
+#' @param filtermethod A vector of filtering methods, each character should be one of mlr_filters$keys,which filter methods should be used,all filters method could be found by mlr_filters_,
+#' @return
+#' @export
+#'
+#' @examples
+FeatureSeByFilter <- function(dataset = MLtestData,
+                              target = "judge",
+                              taskid = "MLtest",
+                              filtermethod = c("anova","auc",
+                                               "cmim","disr","find_correlation",
+                                               "importance","information_gain",
+                                               "jmi","jmim","kruskal_test",
+                                               "mim","mrmr","njmim",
+                                               "performance","permutation","relief",
+                                               "variance")){
+  require("mlr3verse")
+  require("FSelectorRcpp")
+  task = TaskClassif$new(id=taskid, backend=dataset, target = target)
+  Fillist <- list()
+  for (i in filtermethod) {
+    print(paste0("Filtering by ",i))
+    Fil <- flt(i)
+    Fil$calculate(task)
+    Fil.result <- as.data.table(Fil)
+    Fillist[[i]] <- Fil.result
+  }
+    Filall <- do.call(cbind.data.frame,Fillist)
+    return(Filall)
+}
 # Feature Selection by Variable Importance Filters ####
+## Learners With Embedded Filter Methods
+##  [1] "classif.featureless" "classif.ranger"      "classif.rpart"
+##  [4] "classif.xgboost"     "regr.featureless"    "regr.ranger"
+##  [7] "regr.rpart"          "regr.xgboost"        "surv.ranger"
+## [10] "surv.rpart"          "surv.xgboost"
+## https://mlr3book.mlr-org.com/appendix.html#fs-filter-embedded-list
+
+#' Title Feature Selection by Embedded Filter Methods
+#'
+#' @param dataset A dataframe of Machine Learing test dataset
+#' @param target A character of column name in dataset
+#' @param taskid A character of taskid
+#' @param filtermethodVI A vectors of Learners With Embedded Filter Methods
+#'
+#' @return
+#' @export
+#'
+#' @examples
+FeatureSebyVariImpFil <- function(dataset = MLtestData,
+                                  target = "judge",
+                                  taskid = "MLtest",
+                                  filtermethodVI = c("classif.ranger",
+                                                     "classif.rpart",
+                                                     "classif.xgboost")){
+  require("mlr3verse")
+  require("FSelectorRcpp")
+  importantlist <- list()
+  task = TaskClassif$new(id=taskid, backend=dataset, target = target)
+  for(i in filtermethodVI){
+    print(i)
+    if(i == "classif.ranger"){
+      lrn = lrn(i, importance = "impurity")
+    }else{
+      lrn = lrn(i)
+    }
+    Fil = flt("importance", learner = lrn)
+    Fil$calculate(task)
+    Filresult <- as.data.table(Fil)
+    importantlist[[i]] <- Filresult
+  }
+  importanttable <- do.call(cbind.data.frame,importantlist)
+  return(importanttable)
+}
 # Feature Selection by Wrapper Methods ####
+
+#' Title Feature Selection by Wrapper Methods
+#' Use this function in specific ML methods
+#' @param dataset A dataframe of Machine Learing test dataset
+#' @param target A character of column name in dataset
+#' @param taskid A character of taskid
+#' @param filtermethodlrn A filter selection by which lrn
+#' @param nevals A number of nevals
+#'
+#' @return
+#' @export
+#'
+#' @examples
+FeatureWrapperMethod <- function(dataset = MLtestData,
+                                 target = "judge",
+                                 taskid = "MLtest",
+                                 filtermethodlrn = "classif.rpart",
+                                 nevals = 10){
+  require("mlr3verse")
+  require("data.table")
+  task = TaskClassif$new(id=taskid, backend=dataset, target = target)
+  terminator = trm("evals", n_evals = nevals)
+  learner = lrn("classif.rpart")
+  hout = rsmp("holdout")
+  measure = msr("classif.ce")
+  instance = FSelectInstanceSingleCrit$new(
+    task = task,
+    learner = learner,
+    resampling = hout,
+    measure = measure,
+    terminator = terminator
+  )
+  fselector = fs("random_search")
+  # reduce logging output
+  lgr::get_logger("bbotk")$set_threshold("warn")
+  fselector$optimize(instance)
+  instanceresult <- as.data.table(instance$archive)
+  return(instanceresult)
+  #Now the optimized feature subset can be used to subset the task and fit the model on all observations.
+
+
+}
+
+# Feature Selection by Automating Method ####
+#' Title Automating the Feature Selection and benchmark judgement
+#'
+#' @param dataset A dataframe of Machine Learing test dataset
+#' @param target A character of column name in dataset
+#' @param taskid A character of taskid
+#' @param filtermethodlrn A filter selection by which lrn
+#' @param nevals A number of nevals
+#' @param fselector A character of fselector
+#'
+#' @return
+#' @export
+#'
+#' @examples
+FeatureSebyAuto <- function(dataset = MLtestData,
+                            target = "judge",
+                            taskid = "MLtest",
+                            filtermethodlrn = "classif.rpart",
+                            nevals = 10,
+                            fselector = "random_search"){
+  require("mlr3verse")
+  require("data.table")
+  task = TaskClassif$new(id=taskid, backend=dataset, target = target)
+  learner = lrn(filtermethodlrn)
+  terminator = trm("evals", n_evals = nevals)
+  fselector = fs(fselector)
+
+  at = AutoFSelector$new(
+    learner = learner,
+    resampling = rsmp("holdout"),
+    measure = msr("classif.ce"),
+    terminator = terminator,
+    fselector = fselector
+  )
+  grid = benchmark_grid(
+    task = task,
+    learner = list(at, lrn(filtermethodlrn)),
+    resampling = rsmp("cv", folds = 3)
+  )
+
+  bmr = benchmark(grid, store_models = TRUE)
+  bmr$aggregate(msrs(c("classif.ce", "time_train")))
+  return(bmr)
+}

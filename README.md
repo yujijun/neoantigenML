@@ -5,7 +5,7 @@
 2. All preprocess about datasets were inclueded into dataset.r;
 3. All functions were put into *.R;
 4. All supplementary functions used in *.R were included into base.r;
-
+5. All Needed packaged was included in InstallPackage.R, User could install all packages by running this script.
 ** How to change code? (will be deleted when we would like to publish)**
 
 1. 打开dataset.r 整理数据，将需要加载到环境中的数据，用use_data 函数进行加载；

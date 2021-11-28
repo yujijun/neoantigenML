@@ -28,4 +28,5 @@ MLtestData <- read.csv("./data-raw/output.property.csv")
 MLtestData <- MLtestData %>%
   mutate(judge = as.factor(Neodataset$judge)) %>%
   select(!X)
+MLtestData <- MLtestData[which(rowSums(is.na(MLtestData)) == 0),]
 usethis::use_data(MLtestData,overwrite = T)

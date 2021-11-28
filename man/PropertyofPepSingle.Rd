@@ -6,6 +6,10 @@
 \usage{
 PropertyofPepSingle(
   peptides,
+  PropAll = c("aaComp", "aIndex", "autoCorrelation", "autoCovariance", "blosumIndices",
+    "boman", "charge", "crossCovariance", "crucianiProperties", "fasgaiVectors",
+    "hmoment", "hydrophobicity", "instaIndex", "kideraFactors", "mswhimScores", "mw",
+    "mz", "pl", "protFP", "stScales", "tScales", "vhseScales", "zScales"),
   autoCor = TRUE,
   lag = 1,
   property = AAdata$Hydrophobicity$KyteDoolittle,

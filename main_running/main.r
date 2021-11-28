@@ -45,13 +45,26 @@ for(n in 1:n_packages){
 #--------------Main -----------------------
 load_all()
 #### Original dataset input ####
-#### Property calculation ####
-output.property <- PropertyofPepSingle(peptides = peptides)
+#### Property calculation and selected manually ####
+ManualPropertySelection <- c("aaComp","boman","crucianiProperties",
+                             "fasgaiVectors","instaIndex","kideraFactors",
+                             "protFP","stScales","tScales")
+output.property <- PropertyofPepSingle(peptides = peptides,PropAll = ManualPropertySelection)
+#### Create machine learning dataset ####
+MLtestData <- output.property %>%
+  mutate(judge = as.factor(Neodataset$judge)) ## Why some is NA
+MLtestData <- MLtestData[which(rowSums(is.na(MLtestData)) == 0),]
 #### Feature Selection ####
+FeatureSeByFilter.result <- FeatureSeByFilter(dataset = MLtestData)
+FeatureSebyVariImpFil.result <- FeatureSebyVariImpFil(dataset = MLtestData)
 #### Training ####
 Training.rpart <- neoML.rpart(MLtestData)
-#### Performance Evaluation and Comparison ####
+#### Model Tuning ####
+#### Performance Evaluation and Comparison by benmark ####
+#### Visualization ####
 #### output ####
 write.csv(output.property,file = paste0(output_path,
                                           "output.property.csv"),
           quote = F)
+
+

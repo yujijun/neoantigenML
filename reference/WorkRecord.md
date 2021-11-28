@@ -96,7 +96,8 @@ poiVec <- function(x) {
 
 @examples 也不是必须的，但是一旦你写了，就要保证里面的脚本能够运行。所以一定要声明好import的包。还有如果example里用到了其他的包，需要写require(包名)，否则check的时候会找不到这个包。
 
-
-
+8. How to add R script header template?
+https://timfarewell.co.uk/my-r-script-header-template/
+https://www.rdataguy.com/2019/11/lesson-7-creating-rscript-header_11.html
 
 
