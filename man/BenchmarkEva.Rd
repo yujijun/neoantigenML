@@ -5,14 +5,14 @@
 \title{Title Benchmark calculation
 In particular unique combination of Task,Learner and Resampling.}
 \usage{
-BenchmarkEva(tasks, learners, reamplings)
+BenchmarkEva(tasks, learners, resamplings)
 }
 \arguments{
 \item{tasks}{A vector of task}
 
-\item{learners}{A vector of learners}
+\item{learners}{A list of learners}
 
-\item{reamplings}{A resamplings object. detail could be found in example}
+\item{resamplings}{A resamplings methods}
 }
 \value{
 
@@ -24,7 +24,8 @@ In particular unique combination of Task,Learner and Resampling.
 \examples{
 design = benchmark_grid(
 tasks = tsks(c("spam", "german_credit", "sonar")),
-learners = lrns(c("classif.ranger", "classif.rpart", "classif.featureless"),
+learners = lrns(c("classif.glmnet", "classif.rpart", "classif.featureless"),
                predict_type = "prob", predict_sets = c("train", "test")),
 resamplings = rsmps("cv", folds = 3)
+classif.glmnet.rbv2,classif.kknn.rbv2,classif.ranger.rbv2,classif.svm.rbv2,classif.xgboost.rbv2,
 }

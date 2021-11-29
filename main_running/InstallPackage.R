@@ -27,7 +27,12 @@ packages <- c("tidyverse",
               "rpart",
               "stats",
               "FSelectorRcpp",
-              "care") # list of packages to load
+              "care",
+              "iml",
+              "DALEX",
+              "apcluster",
+              "mlr3tuningspaces",
+              "precrec") # list of packages to load
 n_packages <- length(packages) # count how many packages are required
 new.pkg <- packages[!(packages %in% installed.packages())] # determine which packages aren't installed
 # install missing packages

@@ -15,6 +15,7 @@
 ## Notes:
 ## Different machine learning method have different tunning parameter
 #--------------Main -----------------------
+# Should write auto model
 Tunning <- function(dataset = MLtestData,
                     target = "judge",
                     taskid = "MLtest",

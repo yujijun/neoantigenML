@@ -21,7 +21,10 @@
 #' @param dataset A dataframe of Machine Learing test dataset
 #' @param target A character of column name in dataset
 #' @param taskid A character of taskid
+#' @param parallele A logical TRUE or FALSE， Whether to parallelize. default is FALSE in mlr3 package
+#' @param nthreads if parallele is TRUE, the nthreads will be worked.
 #' @param filtermethod A vector of filtering methods, each character should be one of mlr_filters$keys,which filter methods should be used,all filters method could be found by mlr_filters_,
+#'
 #' @return
 #' @export
 #'
@@ -35,7 +38,9 @@ FeatureSeByFilter <- function(dataset = MLtestData,
                                                "jmi","jmim","kruskal_test",
                                                "mim","mrmr","njmim",
                                                "performance","permutation","relief",
-                                               "variance")){
+                                               "variance"),
+                              parallele = FALSE,
+                              nthreads = 4){
   require("mlr3verse")
   require("FSelectorRcpp")
   task = TaskClassif$new(id=taskid, backend=dataset, target = target)
@@ -43,6 +48,9 @@ FeatureSeByFilter <- function(dataset = MLtestData,
   for (i in filtermethod) {
     print(paste0("Filtering by ",i))
     Fil <- flt(i)
+    if(parallele == TRUE){
+      set_threads(Fil,n=nthreads)
+    }
     Fil$calculate(task)
     Fil.result <- as.data.table(Fil)
     Fillist[[i]] <- Fil.result
@@ -164,7 +172,6 @@ FeatureSebyAuto <- function(dataset = MLtestData,
   learner = lrn(filtermethodlrn)
   terminator = trm("evals", n_evals = nevals)
   fselector = fs(fselector)
-
   at = AutoFSelector$new(
     learner = learner,
     resampling = rsmp("holdout"),
@@ -181,4 +188,45 @@ FeatureSebyAuto <- function(dataset = MLtestData,
   bmr = benchmark(grid, store_models = TRUE)
   bmr$aggregate(msrs(c("classif.ce", "time_train")))
   return(bmr)
+}
+
+
+#' Title
+#'
+#' @param dataset A dataframe of Machine Learing test dataset
+#' @param target A character of column name in dataset
+#' @param taskid A character of taskid
+#' @param filtermethodlrn A filter selection by which lrn
+#' @param nevals A number of nevals
+#' @param fselector A character of fselector
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' rr = FeatureSebyNestedresam(MLtestData)
+#' extract_inner_fselect_archives(rr) #https://mlr3fselect.mlr-org.com/
+FeatureSebyNestedresam <- function(dataset = MLtestData,
+                                  target = "judge",
+                                  taskid = "MLtest",
+                                  filtermethodlrn = "classif.rpart",
+                                  nevals = 10,
+                                  fselector = "random_search"){
+  require("mlr3verse")
+  require("data.table")
+  require("mlr3fselect")
+  task = TaskClassif$new(id=taskid, backend=dataset, target = target)
+  learner = lrn(filtermethodlrn)
+  # nested resampling
+  rr = fselect_nested(
+    method = fselector,
+    task =  task,
+    learner = lrn(filtermethodlrn),
+    inner_resampling = rsmp("holdout"),
+    outer_resampling = rsmp("cv", folds = 3),
+    measure = msr("classif.ce"),
+    term_evals = nevals,
+    batch_size = 5
+  )
+ return(rr)
 }

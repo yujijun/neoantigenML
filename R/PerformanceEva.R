@@ -54,8 +54,9 @@ PerformanceEva <- function(task,
 #' In particular unique combination of Task,Learner and Resampling.
 
 #' @param tasks A vector of task
-#' @param learners A vector of learners
-#' @param reamplings A resamplings object. detail could be found in example
+#'
+#' @param resamplings A resamplings methods
+#' @param learners A list of learners
 #'
 #' @return
 #' @export
@@ -63,12 +64,13 @@ PerformanceEva <- function(task,
 #' @examples
 #' design = benchmark_grid(
 #' tasks = tsks(c("spam", "german_credit", "sonar")),
-#' learners = lrns(c("classif.ranger", "classif.rpart", "classif.featureless"),
+#' learners = lrns(c("classif.glmnet", "classif.rpart", "classif.featureless"),
 #'                predict_type = "prob", predict_sets = c("train", "test")),
 #' resamplings = rsmps("cv", folds = 3)
+#' classif.glmnet.rbv2,classif.kknn.rbv2,classif.ranger.rbv2,classif.svm.rbv2,classif.xgboost.rbv2,
 BenchmarkEva <- function(tasks,
                          learners,
-                         reamplings){
+                         resamplings){
   require("mlr3verse")
   require("data.table")
   design = benchmark_grid(
@@ -79,16 +81,16 @@ BenchmarkEva <- function(tasks,
   bmr = benchmark(design)
   measures = list(
     msr("classif.auc", predict_sets = "train", id = "auc_train"),
-    msr("classif.auc", id = "auc_test")
+    msr("classif.auc", predict_sets = "test",id = "auc_test")
   )
   tab = bmr$aggregate(measures)
-  ranks = tab[, .(learner_id, rank_train = rank(-auc_train), rank_test = rank(-auc_test)), by = task_id]
-  ranks = ranks[, .(mrank_train = mean(rank_train), mrank_test = mean(rank_test)), by = learner_id]
+  #ranks = tab[, .(learner_id, rank_train = rank(-auc_train), rank_test = rank(-auc_test)), by = task_id]
+  #ranks = ranks[, .(mrank_train = mean(rank_train), mrank_test = mean(rank_test)), by = learner_id]
   bmr.barplot = autoplot(bmr) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
   # bmr_small = bmr$clone()$filter(task_id = tasks[1])
   # bmr_roc = autoplot(bmr_small, type = "roc")
   # Extracting ResampleResults:https://mlr3book.mlr-org.com/perf-eval-cmp.html
-  Allresult <- list(bmr,tab,ranks,bmr.barplot)
+  Allresult <- list(bmr = bmr,tab = tab,barplot = bmr.barplot)
   return(Allresult)
 }
 

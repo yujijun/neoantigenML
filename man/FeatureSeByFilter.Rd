@@ -10,7 +10,9 @@ FeatureSeByFilter(
   taskid = "MLtest",
   filtermethod = c("anova", "auc", "cmim", "disr", "find_correlation", "importance",
     "information_gain", "jmi", "jmim", "kruskal_test", "mim", "mrmr", "njmim",
-    "performance", "permutation", "relief", "variance")
+    "performance", "permutation", "relief", "variance"),
+  parallele = FALSE,
+  nthreads = 4
 )
 }
 \arguments{
@@ -21,6 +23,10 @@ FeatureSeByFilter(
 \item{taskid}{A character of taskid}
 
 \item{filtermethod}{A vector of filtering methods, each character should be one of mlr_filters$keys,which filter methods should be used,all filters method could be found by mlr_filters_,}
+
+\item{parallele}{A logical TRUE or FALSE， Whether to parallelize. default is FALSE in mlr3 package}
+
+\item{nthreads}{if parallele is TRUE, the nthreads will be worked.}
 }
 \value{
 
