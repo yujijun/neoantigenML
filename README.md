@@ -25,11 +25,15 @@ Attention:
 1. 列名规整，将文件的列名，用janitor 函数进行规整；
 2. 文件删除descirption\qualitative_measure\allele_name 中任何一列包含NA数据的term；删除非线性肽段 和 肽段中包含[+]新的term；
 3. 肽段长度选择： 计算肽段长度，并且筛选出肽段长度为9的肽段，然后留下最重要的几列信息，description,allele_name,qualitative_measure,organism_name,name,pep_length
-4. 肽段去冗余：对于完全相同的肽段，如果有一个证明为阳性，则将阳性结果留下，如果有超过一个阳性，判断MHC 亚型，将所有不同亚型的阳性结果留下；如果没有阳性结果，将所有不同MHC亚型的阴性结果留下。【注意：此地没有将同样长度，包含同样结合位点的肽段冗余情况考虑进去，如：AAANIIRTL 和 AANIIRTN 等】
+4. 肽段去重复：对于完全相同的肽段，如果有一个证明为阳性，则将阳性结果留下，如果有超过一个阳性，判断MHC 亚型，将所有不同亚型的阳性结果留下；如果没有阳性结果，将所有不同MHC亚型的阴性结果留下。【注意：此地没有将同样长度，包含同样结合位点的肽段冗余情况考虑进去，如：AAANIIRTL 和 AANIIRTN 等】
 5. 添加判断的judge标签：将有一个阳性的peptide标注为1，没有任何阳性标签的标注为0 
 6. 肽段distinct：将相同肽段不同MHC情况的term 只留下其中一个term【如：AAAAQQIQV 在HLA-A* 02:01 和 HLA-B* 07:02中都为 Negative 情况，我们只留一个进行进一步处理】
 7. 最后筛选出21537 个 unique peptides for further analysis.  结果保存在：/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/Tcell_deredundancy_all.distinct.RData 文件中; hosthuman 和 hostMus 主要保存在Tcell_deredundancy_hosthuman.RData 和 Tcell_deredundancy_hostMus.RData 文件中
+8. 通过blast的方式进行肽段去冗余，具体过程见下图。
 ------------
+
+具体示意图如下：
+![](https://github.com/yujijun/neoantigenML/blob/main/image/deredundancy.jpg)
 
 Reference:
 1. please refer to https://mlr3book.mlr-org.com/ for detail usage about mlr3. 
