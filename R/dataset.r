@@ -30,3 +30,8 @@ MLtestData <- MLtestData %>%
   select(!X)
 MLtestData <- MLtestData[which(rowSums(is.na(MLtestData)) == 0),]
 usethis::use_data(MLtestData,overwrite = T)
+
+#### IEDB human host and mus host datasets ####
+load("./result/yjj/Tcell_deredundancy_hostMus.RData")
+IEDBHostMus <- Tcell_deredundancy_all.hostMus %>%
+  select(description,judge.final)

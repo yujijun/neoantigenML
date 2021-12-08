@@ -5,3 +5,5 @@
 .DS_Store
 reference
 result/yjj/*
+/input/*
+result/*

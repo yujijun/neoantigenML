@@ -20,8 +20,7 @@ Attention:
 3. 如果涉及到自己的写的函数之间的调用，注意使用source函数，写清楚相对路径.
 
 
-关于结果文件的统计：
-1. 用main_running/ folder 底下的deredundancy.R script，去处理IEDB 中Tcell_full_v3 文件，主要包含一下几个步骤：
+关于结果文件的统计：用main_running/ folder 底下的deredundancy.R script，去处理IEDB 中Tcell_full_v3 文件，主要包含一下几个步骤：
  ---------------
 1. 列名规整，将文件的列名，用janitor 函数进行规整；
 2. 文件删除descirption\qualitative_measure\allele_name 中任何一列包含NA数据的term；删除非线性肽段 和 肽段中包含[+]新的term；
@@ -30,6 +29,7 @@ Attention:
 5. 添加判断的judge标签：将有一个阳性的peptide标注为1，没有任何阳性标签的标注为0 
 6. 肽段distinct：将相同肽段不同MHC情况的term 只留下其中一个term【如：AAAAQQIQV 在HLA-A* 02:01 和 HLA-B* 07:02中都为 Negative 情况，我们只留一个进行进一步处理】
 7. 最后筛选出21537 个 unique peptides for further analysis.  结果保存在：/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/Tcell_deredundancy_all.distinct.RData 文件中; hosthuman 和 hostMus 主要保存在Tcell_deredundancy_hosthuman.RData 和 Tcell_deredundancy_hostMus.RData 文件中
+------------
 
 Reference:
 1. please refer to https://mlr3book.mlr-org.com/ for detail usage about mlr3. 

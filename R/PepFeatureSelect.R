@@ -31,7 +31,7 @@
 #' @examples
 FeatureSeByFilter <- function(dataset = MLtestData,
                               target = "judge",
-                              taskid = "MLtest",
+                              taskid = "FeatureSeByFilter",
                               filtermethod = c("anova","auc",
                                                "cmim","disr","find_correlation",
                                                "importance","information_gain",
@@ -43,6 +43,7 @@ FeatureSeByFilter <- function(dataset = MLtestData,
                               nthreads = 4){
   require("mlr3verse")
   require("FSelectorRcpp")
+  set.seed(123)
   task = TaskClassif$new(id=taskid, backend=dataset, target = target)
   Fillist <- list()
   for (i in filtermethod) {
@@ -79,12 +80,15 @@ FeatureSeByFilter <- function(dataset = MLtestData,
 #' @examples
 FeatureSebyVariImpFil <- function(dataset = MLtestData,
                                   target = "judge",
-                                  taskid = "MLtest",
+                                  taskid = "FeatureSebyVariImpFil",
                                   filtermethodVI = c("classif.ranger",
                                                      "classif.rpart",
                                                      "classif.xgboost")){
   require("mlr3verse")
   require("FSelectorRcpp")
+  require("ranger")
+  future::plan("multisession")
+  set.seed(123)
   importantlist <- list()
   task = TaskClassif$new(id=taskid, backend=dataset, target = target)
   for(i in filtermethodVI){
@@ -118,11 +122,13 @@ FeatureSebyVariImpFil <- function(dataset = MLtestData,
 #' @examples
 FeatureWrapperMethod <- function(dataset = MLtestData,
                                  target = "judge",
-                                 taskid = "MLtest",
-                                 filtermethodlrn = "classif.rpart",
-                                 nevals = 10){
+                                 taskid = "FeatureWrapperMethod",
+                                 filtermethodlrn = "FeatureWrapperMethod",
+                                 nevals = 20){
   require("mlr3verse")
   require("data.table")
+  set.seed(123)
+  future::plan("multisession")
   task = TaskClassif$new(id=taskid, backend=dataset, target = target)
   terminator = trm("evals", n_evals = nevals)
   learner = lrn("classif.rpart")
@@ -162,12 +168,14 @@ FeatureWrapperMethod <- function(dataset = MLtestData,
 #' @examples
 FeatureSebyAuto <- function(dataset = MLtestData,
                             target = "judge",
-                            taskid = "MLtest",
+                            taskid = "FeatureSebyAuto",
                             filtermethodlrn = "classif.rpart",
-                            nevals = 10,
+                            nevals = 20,
                             fselector = "random_search"){
   require("mlr3verse")
   require("data.table")
+  future::plan("multisession")
+  set.seed(123)
   task = TaskClassif$new(id=taskid, backend=dataset, target = target)
   learner = lrn(filtermethodlrn)
   terminator = trm("evals", n_evals = nevals)
@@ -208,13 +216,15 @@ FeatureSebyAuto <- function(dataset = MLtestData,
 #' extract_inner_fselect_archives(rr) #https://mlr3fselect.mlr-org.com/
 FeatureSebyNestedresam <- function(dataset = MLtestData,
                                   target = "judge",
-                                  taskid = "MLtest",
+                                  taskid = "FeatureSebyNestedresam",
                                   filtermethodlrn = "classif.rpart",
-                                  nevals = 10,
+                                  nevals = 20,
                                   fselector = "random_search"){
   require("mlr3verse")
   require("data.table")
   require("mlr3fselect")
+  future::plan("multisession")
+  set.seed(123)
   task = TaskClassif$new(id=taskid, backend=dataset, target = target)
   learner = lrn(filtermethodlrn)
   # nested resampling

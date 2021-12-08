@@ -2,7 +2,7 @@
 ##
 ## Script name: deredundance.R
 ##
-## Purpose of script: This is script for dataset deredundancy
+## Purpose of script:
 ##
 ## Author: JijunYu
 ##
@@ -45,14 +45,15 @@ Tcell_v3_clean <- Tcell_v3_clean %>%
 Tcell_v3_clean <- Tcell_v3_clean[-c(grep("[+]",Tcell_v3_clean$description)),]
 #302480
 
-#### filter peptides ####
+#### 对于完全相同的肽段的处理方法：filter peptides ####
 #1. filter replication columns
 Tcell_v3_clean <- Tcell_v3_clean %>%
-  mutate(pep_length == str_length(description))
+  mutate(pep_length == str_length(description)) %>%
   filter(pep_length == 9) %>%
   distinct(description,allele_name,
-               qualitative_measure,
-               organism_name,name,pep_length)
+           qualitative_measure,
+           organism_name,name,pep_length,antigen_iri,parent_protein_iri)
+
 test <- Tcell_v3_clean
 peptides.single <- names(table(test$description)[table(test$description) == 1])
 peptides.rep <- names(table(test$description)[table(test$description) > 1])
@@ -96,7 +97,12 @@ Tcell_deredundancy_all.judge <- Tcell_deredundancy_all %>%
   mutate(judge.sum = sum(judge)) %>%
   ungroup() %>%
   mutate(judge.final = if_else(judge.sum == 0,0,1))
-
+Uniprot <- str_split_fixed(Tcell_deredundancy_all.judge$parent_protein_iri,
+                           pattern = "[/]", n = Inf)
+colnames(Uniprot) <- paste0("uniprot_",seq(1:5))
+Tcell_deredundancy_all.judge <- cbind(Tcell_deredundancy_all.judge,Uniprot)
+Tcell_deredundancy_all.judge <- Tcell_deredundancy_all.judge %>%
+  filter(!(uniprot_5 == ""))
 #### final #####
 # host is human
 Tcell_deredundancy_all.hosthuman = Tcell_deredundancy_all.judge %>%
@@ -113,10 +119,3 @@ Tcell_deredundancy_all.distinct = Tcell_deredundancy_all.judge %>%
 save(Tcell_deredundancy_all.distinct, file = "./result/yjj/Tcell_deredundancy_all.distinct.RData")
 save(Tcell_deredundancy_all.hosthuman, file = "./result/yjj/Tcell_deredundancy_hosthuman.RData")
 save(Tcell_deredundancy_all.hostMus, file = "./result/yjj/Tcell_deredundancy_hostMus.RData")
-
-
-
-host_table <- as.data.frame(table(Tcell_deredundancy_all.distinct$name))
-
-
-

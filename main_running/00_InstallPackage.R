@@ -16,7 +16,10 @@
 ##
 # INSTALL PACKAGES & LOAD LIBRARIES -----------------
 cat("INSTALLING PACKAGES & LOADING LIBRARIES... \n\n", sep = "")
-packages <- c("tidyverse",
+packages <- c( "data.table",
+               "mlr3",
+               "bbotk","mlr3misc","mlr3pipelines","mlr3cluster","mlr3filters","mlr3fselect","mlr3learners","mlr3proba","mlr3tuning","mlr3viz","paradox",
+              "tidyverse",
               "stringr",
               "devtools",
               "mlr3verse",
@@ -32,7 +35,12 @@ packages <- c("tidyverse",
               "DALEX",
               "apcluster",
               "mlr3tuningspaces",
-              "precrec") # list of packages to load
+              "precrec",
+              "janitor",
+              "ranger",
+              "glmnet",
+              "e1071",
+              "motifStack") # list of packages to load
 n_packages <- length(packages) # count how many packages are required
 new.pkg <- packages[!(packages %in% installed.packages())] # determine which packages aren't installed
 # install missing packages

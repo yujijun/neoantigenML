@@ -36,6 +36,7 @@ neoML.rpart <- function(Neodataset,
   library(tidyverse)
   library(mlr3verse)
   library(magrittr)
+  future::plan("multisession")
   # create task ####
   task = TaskClassif$new(id=taskid, backend=Neodataset, target = target)
   # Building PipeOps####
@@ -88,6 +89,7 @@ neoML.rpart <- function(Neodataset,
 #'
 #' @examples
 #' neoML.glmnet(MLtestData)
+#' The evaluation of Tunning Space
 neoML.all <- function(Neodataset = MLtestData,
                          taskid = "neoML.glmnet",
                          target="judge",
@@ -103,6 +105,8 @@ neoML.all <- function(Neodataset = MLtestData,
   library(mlr3verse)
   library(magrittr)
   library(mlr3tuningspaces)
+  library("glmnet")
+  set.seed(123)
   # create task ####
   task = TaskClassif$new(id=taskid, backend=Neodataset, target = target)
   # write auto tuning learning function by parallelization methods

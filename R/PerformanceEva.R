@@ -35,6 +35,7 @@ PerformanceEva <- function(task,
                            resamplemethod = rsmp("cv",folds =3),
                            bmr_small){
   require(mlr3verse)
+  future::plan("multisession")
   if(is.empty(bmr_small) == TRUE){
     rr = resample(task, learner, resamplemethod, store_models = TRUE)
   }else{
@@ -73,6 +74,8 @@ BenchmarkEva <- function(tasks,
                          resamplings){
   require("mlr3verse")
   require("data.table")
+  future::plan("multisession")
+  set.seed(123)
   design = benchmark_grid(
     tasks = tasks,
     learners = learners,

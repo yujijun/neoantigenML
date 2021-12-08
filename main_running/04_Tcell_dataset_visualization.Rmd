@@ -1,0 +1,505 @@
+---
+title: "IEDBDataPreprocess"
+author:
+  - yujijun
+documentclass: ctexart
+keywords:
+  - 中文
+  - R Markdown
+geometry: "left=2.5cm,right=2cm,top=3cm,bottom=2.5cm"
+output:
+  rticles::ctex:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+---
+# 前言
+本文主要用来进行IEDB数据库最新数据的统计和可视化的工作，便于更好的构建Neoantigen测试数据集。
+
+```{r hyperparameter, include=FALSE}
+library(tidyverse)
+library(Biostrings)
+library(motifStack)
+library(ggpubr)
+mytheme <- theme(
+  axis.text.x = element_text(face = "bold",angle = 45,hjust = 1,size = 8),
+  plot.title = element_text(face = "bold",size = 12,hjust = 0.5),
+  axis.title = element_text(face = "bold",size = 10)
+  
+)
+input_folder <- "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/input/"
+output_folder <- "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/"
+```
+
+```{r pie_function, include=FALSE}
+# Basic piechart
+pie_function <- function(data){
+  # we need group and value  in dataset 
+  # Compute the position of labels
+  data <- data %>% 
+  arrange(desc(group)) %>%
+  mutate(prop = value / sum(data$value) *100) %>%
+  mutate(ypos = cumsum(prop)- 0.5*prop ) 
+  plot1 <- 
+  ggplot(data, aes(x="", y=prop, fill=group)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void() + 
+  #theme(legend.position="none") +
+  
+  geom_text(aes(y = ypos, label = group), color = "white", size=6) +
+  scale_fill_brewer(palette="Set1")
+  return(plot1)
+}
+
+```
+
+# 数据处理
+## 数据导入
+```{r 01-Input_IEDB, include=FALSE}
+Tcell_v3 <- read.delim(stringr::str_c(input_folder,"tcell_full_v3.csv"),sep = ",",header = T)
+dim(Tcell_v3)
+```
+
+## 数据预处理
+```{r preprocess}
+### 列选择
+Tcell_v3_clean <- Tcell_v3 %>%  
+  select(matches("Epitope")|matches("Host")|matches("Assay")|matches("MHC"))
+### 更改列名
+colnames(Tcell_v3_clean) <- Tcell_v3_clean[1,]
+Tcell_v3_clean <- Tcell_v3_clean[-1,]
+Tcell_v3_clean <- janitor::clean_names(Tcell_v3_clean)
+### 行选择
+#如果数据中无论是肽段、或者来源微生物的名称或者是宿主的名称，或者是all#ele #中存在缺失，则直接将结果删除。
+Tcell_v3_clean <- Tcell_v3_clean %>% 
+  filter(!if_any(.cols =  c(description,qualitative_measure),.fns = `==` , "")) %>% mutate(pep_length = stringr::str_length(description))
+
+### 去除大类中不属于肽段的类型
+Tcell_v3_clean <- Tcell_v3_clean %>% 
+  arrange(description) %>% 
+  filter(object_type == "Linear peptide") %>% 
+  arrange(desc(pep_length))
+## 417716
+### 去除肽段中包含 [+] 这些
+Tcell_v3_clean <- Tcell_v3_clean[-c(grep("[+]",Tcell_v3_clean$description)),]
+### filter bigger than 30 
+Tcell_v3_clean <- Tcell_v3_clean %>% 
+  filter(pep_length <= 30)
+
+Tcell_v3_clean_withoutrep <- Tcell_v3_clean %>% 
+    distinct(description,organism_name,name,qualitative_measure,allele_name,pep_length)  %>% 
+  filter(pep_length == 9)
+    
+  #将完全实验重复的样本去掉 %>% 
+
+# 413594
+### 肽段去冗余
+test <- Tcell_v3_clean[,c("description","organism_name","name","qualitative_measure","allele_name","allele_evidence_code")]
+test <- test %>% 
+  distinct(description,organism_name,name,qualitative_measure,allele_name,allele_evidence_code,.keep_all =T) #将完全实验重复的样本去掉
+
+peptides.single <- names(table(test$description)[table(test$description) == 1])
+peptides.rep <- names(table(test$description)[table(test$description) > 1])
+
+test.single <- test %>% 
+  filter(description %in% peptides.single)
+
+test.rep <- test %>% 
+  filter(description %in% peptides.rep)
+
+# 肽段去冗余过程如下 #
+#如果有一个为阳性，则将该阳性结果留下；
+#如果超过一个阳性结果，则判断mhc 是否相同，取所有MHC亚型留下
+#如果没有阳性，则将所有MHC亚型留下。
+df.empty <- test.single[1,]
+for(peptide in peptides.rep){
+  df.tmp <- test.rep %>% 
+    filter(description == peptide)
+  if(is_empty(grep("Positive",df.tmp$qualitative_measure)) == FALSE){
+    df.tmp <- df.tmp[grep("Positive",df.tmp$qualitative_measure),]
+    df.tmp <- df.tmp %>% 
+      distinct(allele_name,.keep_all =T) %>% 
+      filter(!(allele_name == ""))
+  }else{
+    df.tmp <- df.tmp %>% 
+      distinct(allele_name,.keep_all=T) %>% 
+      filter(!(allele_name == ""))
+  }
+  df.empty <- rbind(df.empty,df.tmp)
+}
+df.empty <- df.empty[-1,]
+test.all <- rbind(test.single,df.empty)
+test.all.new <- test.all
+test.all.new$name[str_detect(test.all.new$name,pattern = "Homo sapiens")]<- "Homo sapiens"
+  
+Tcell_v3_human_host <-test.all.new %>% 
+    filter(str_detect(name,pattern = "Homo sapiens"))  
+
+### 抽取出人来源的term
+Tcell_v3_human_source <-test.all %>% 
+    filter(str_detect(organism_name,pattern = "Homo sapiens")) 
+Tcell_v3_human_source.humanhost <- Tcell_v3_human_source %>% 
+  filter(str_detect(name,pattern = "Homo sapiens"))
+save(test.all.new, file = "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/Tcell_clean_final.RData")
+save(Tcell_v3_human_host, file = "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/Tcell_v3_human_host.RData")
+save(Tcell_v3_human_source, file = "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/Tcell_v3_human_source.RData")
+```
+
+## 数据输出
+```{r eval=FALSE, include=FALSE}
+metadata <- Tcell_v3[1,]
+save(metadata,file = stringr::str_c(output_folder,"/01_Tcell_v3.metadata.RData"))
+save(Tcell_v3_human_clean,file = stringr::str_c(output_folder,"/Tcell_v3_human_clean.RData"))
+save(Tcell_v3_human_source_clean,file = stringr::str_c(output_folder,"/Tcell_v3_human_source_clean.RData"))
+
+# Tcell_v3_example100 <- Tcell_v3_clean[1:100,]
+# save(Tcell_v3_example100,file = stringr::str_c(output_folder,"/01.2_Tcell_v3_example100.RData"))
+# write.table(Tcell_v3_example100,file = stringr::str_c(output_folder,"/01.2_Tcell_v3_example100.tsv"),
+#             sep = "\t")
+```
+
+## 导出肽段 ####
+```{r output peptides by fasta format}
+Human_source <- Tcell_v3_human_source %>% 
+  mutate(peplength = str_length(description)) %>% 
+  mutate(judge = if_else(qualitative_measure == "Negative",0,1)) %>% 
+  group_by(description) %>% 
+  mutate(judge.sum = sum(judge)) %>% 
+  ungroup() %>% 
+  mutate(judge.final = if_else(judge.sum == 0,0,1))
+
+Human_source_distinct <- Human_source %>% 
+  distinct(description,.keep_all = TRUE) %>% 
+  arrange(description)
+
+library(Biostrings)
+#setwd("/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML")
+peptides.set <- AAStringSet(x = Human_source_distinct$description[8001:11491])
+writeXStringSet(peptides.set,filepath = "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/HumanSourcePeptides3.fasta")
+
+```
+Job Successfully Submitted
+Your job has been successfully submitted. You will receive an email when the results are available...
+
+If you don't receive any email, please check the status of your job by following this link: toolresult.ebi?jobId=clustalo-E20211201-161042-0296-15809369-p2m
+
+The job results will be available for 7 days.
+
+Job Successfully Submitted
+Your job has been successfully submitted. You will receive an email when the results are available...
+
+If you don't receive any email, please check the status of your job by following this link: toolresult.ebi?jobId=clustalo-E20211201-161138-0380-64702767-p2m
+
+The job results will be available for 7 days.
+
+
+Job Successfully Submitted
+Your job has been successfully submitted. You will receive an email when the results are available...
+
+If you don't receive any email, please check the status of your job by following this link: toolresult.ebi?jobId=clustalo-E20211201-161246-0751-24336676-p1m
+
+The job results will be available for 7 days.
+
+总结：对作用于人的免疫原性数据集做总结。
+
+#去除全包含的冗余代码
+```{r 全包含冗余代码}
+library(tidyverse)
+# peptide redundancy
+Human_source_distinct <- Human_source %>% 
+  distinct(description,.keep_all = TRUE) %>% 
+  arrange(description)
+pepredundancy <- function(Human_source_distinct, peplengthcutoff = 7){
+  Human_source_distinct <- Human_source_distinct %>% 
+    arrange(peplength) 
+  Human_source_distinct$qualitative_measure[Human_source_distinct$qualitative_measure != "Negative"] = "Positive"
+  if(min(Human_source_distinct$peplength) < peplengthcutoff){
+      df.empty <- Human_source_distinct %>% 
+    filter(peplength < peplengthcutoff)
+      Human_source_distinct <- Human_source_distinct %>% 
+        filter(peplength >= peplengthcutoff) %>% 
+        arrange(description)
+  }else{
+      df.empty = as.data.frame(matrix(nrow=0,ncol=ncol(Human_source_distinct))) 
+  }
+  Human_source_distinct_left = Human_source_distinct
+  for (i in Human_source_distinct$description){
+    print(i)
+    if(i %in% Human_source_distinct_left$description){
+      i_included <- stringr::str_detect(pattern = i,string = Human_source_distinct_left$description)
+      df.tmp <- Human_source_distinct_left[i_included,] %>% arrange(peplength) 
+      if(length(unique(df.tmp$qualitative_measure)) == 1){
+          df.tmp <- df.tmp[1,]
+      }else{
+          df.tmp <- df.tmp %>% distinct(qualitative_measure,.keep_all=T)
+      }
+      Human_source_distinct_left <- Human_source_distinct_left[!i_included,]
+      print(nrow(Human_source_distinct_left))
+      df.empty <- rbind(df.empty,df.tmp)
+    }}
+  return(df.empty)
+}
+Human_source_distinct_redundancy <- pepredundancy(Human_source_distinct = Human_source_distinct,
+                      peplengthcutoff = 7)
+save(Human_source_distinct_redundancy,file = "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/Human_source_distinct_redundancy.RData")
+library(Biostrings)
+#setwd("/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML")
+peptides = Human_source_distinct_redundancy$description
+names(peptides) = Human_source_distinct_redundancy$description
+peptides.set <- AAStringSet(x =peptides )
+writeXStringSet(peptides.set,filepath = "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/HumanSourceredundancy.fasta")
+
+```
+
+# 数据可视化
+## 肽段的物种来源
+注意：物种来源太多，所以选择top10的物种进行展示
+```{r organism_1}
+test.all %>% 
+  mutate(organism_name_fct = as.factor(organism_name)) %>% 
+  mutate(organism_name_fct_lump = fct_lump(organism_name_fct,10)) %>% 
+  group_by(organism_name_fct_lump) %>% 
+  summarise(n = n()) %>% 
+  mutate(color = if_else(
+    organism_name_fct_lump == "Homo sapiens","red","grey"
+  )) %>% 
+  ggplot(mapping = aes(x = organism_name_fct_lump,
+                       y = n,fill = I(color))) + 
+  geom_col() + 
+  geom_text(mapping = aes(label = n),vjust = -0.2) +
+  theme(axis.text.x.bottom = element_text(angle = 45,hjust = 1)) + 
+  theme_classic() + 
+  mytheme  
+
+```
+
+总结：抗体的病原微生物来源主要是 人类或者是牛痘病毒
+
+```{r organism_2, eval=FALSE, include=FALSE}
+Tcell_v3_clean %>% 
+  mutate(organism_name_fct = as.factor(organism_name)) %>% 
+  mutate(organism_name_fct_lump = fct_lump(organism_name_fct,10)) %>% 
+  mutate(color = if_else(
+    organism_name_fct_lump == "Homo sapiens","red","grey"
+  )) %>% 
+  ggplot(mapping = aes(x = organism_name_fct_lump,
+                       fill = I(color))) + 
+  geom_bar() + 
+  geom_text(aes(label = ..count..),stat = "count",
+            colour = "black",vjust = 1.5) +
+   labs(title = "Organism of peptides", x = "Organism name", y = "count") + 
+  mytheme
+
+#https://r-graphics.org/recipe-bar-graph-labels
+```
+
+
+## 肽段的宿主情况
+```{r}
+Tcell_v3_human_source %>% 
+  mutate(organism_name_fct = as.factor(allele_name)) %>% 
+  mutate(organism_name_fct_lump = fct_lump(organism_name_fct,10)) %>% 
+  group_by(organism_name_fct_lump) %>% 
+  summarise(n = n()) %>% 
+  mutate(color = if_else(
+    organism_name_fct_lump == "Homo sapiens","red","grey"
+  )) %>% 
+  ggplot(mapping = aes(x = organism_name_fct_lump,
+                       y = n,fill = I(color))) + 
+  geom_col() + 
+  geom_text(mapping = aes(label = n),vjust = -0.2) +
+  theme(axis.text.x.bottom = element_text(angle = 45,hjust = 1)) + 
+  theme_classic() + 
+  mytheme  
+# test.all %>% 
+#   mutate(host_name = stringr::str_sub(name,start = 1, end = 12)) %>% 
+#   ggplot(aes(x = host_name)) + 
+#   geom_bar() + 
+#   theme_classic() + 
+#   mytheme
+```
+
+总结：宿主主要有如下两种：Human sapiens and Mus musculus
+
+## 肽段的长度情况展示
+### 所有肽段长度信息展示【<50】
+```{r peptide_length, warning=FALSE}
+Tcell_v3_clean %>% 
+  mutate(pep_length = stringr::str_length(description)) %>% 
+  ggplot(aes(x = pep_length,fill= class)) + 
+  geom_bar(position = "stack") + 
+  scale_x_continuous(breaks = seq(5,40,1),limits = c(5,40)) + 
+  ggtitle("Length statistics of all peptides") + 
+  theme_classic()
+  theme(plot.title = element_text(hjust = 0.5,face = "bold"))
+# 用scale_x_continuous 去展示所有的breaks
+```
+
+总结：肽段的长度主要集中在8、9、15、18 这几个长度。
+
+### 人来源的肽段长度信息展示
+```{r Peptide_length_in_human, message=FALSE, warning=FALSE}
+### peptide length in human
+Tcell_v3_human %>% 
+  ggplot(aes(x = pep_length,fill = class)) + 
+  geom_bar() + 
+ # coord_fixed(xlim = c(5,30)) 
+  scale_x_continuous(breaks = seq(5,30,1),limits = c(5,30)) + 
+  ggtitle("Peptide length in human") + 
+  theme(plot.title = element_text(hjust = 0.5,face = "bold"))
+
+```
+
+## 肽段的免疫原性情况展示
+### 所有肽段的免疫原性的情况展示
+```{r}
+pie_number <- test.all %>% 
+  pull(qualitative_measure) %>% 
+  table() %>% as.numeric()
+pie_number <- pie_number[c(4,1,2,3,5)]
+pie_name <- test.all %>% 
+  pull(qualitative_measure) %>% 
+  table() %>% 
+  names()
+pie_name <- pie_name[c(4,1,2,3,5)]
+library(colorspace)
+pie(x = pie_number,labels = pie_name,col = colorspace::qualitative_hcl(5, palette = "Dark 2"))
+# data <- data.frame(group = pie_name,
+#                    value = pie_number)
+# pie_function(data) + 
+#   ggtitle("Immunogenicity of all peptide") + 
+#   theme(plot.title = element_text(hjust = 0.5,face = "bold"))
+```
+
+### 人来源肽段的免疫原性的情况展示 
+```{r human_organism}
+pie_number <- test %>% 
+  pull(qualitative_measure) %>% 
+  table() %>% 
+  as.numeric()
+#pie_number <- pie_number[c(4,1,2,3,5)]
+pie_name <- test %>% 
+  pull(qualitative_measure) %>% 
+  table() %>% 
+  names()
+#pie_name <- pie_name[c(4,1,2,3,5)]
+# data <- data.frame(group = pie_name,
+#                    value = pie_number)
+# pie_function(data) + 
+#   ggtitle("Immunogenicity of peptide in human") + 
+#   theme(plot.title = element_text(hjust = 0.5,face = "bold"))
+library(colorspace)
+pie(x = pie_number,labels = pie_name,col = colorspace::qualitative_hcl(5, palette = "Dark 2"))
+```
+
+总结： 从这个数据统计我们能够看出，免疫原性阳性的数据甚至多余阴性的数据. 
+
+## seqlogo or motif 展示
+### 人来源的长度为9的peptide的seglogo
+```{r human}
+# 如何从一系列sequence中生成motif 矩阵
+set <- Tcell_v3_human  %>%
+  filter(pep_length == 9 & stringr::str_detect(qualitative_measure,
+                                             pattern = "Positive") &
+           class == "I") %>%
+  pull(description)
+set = AAStringSet(set)
+pcm <- consensusMatrix(set)
+# 如何展示motif 矩阵
+library(motifStack)
+motif<-pcm2pfm(pcm)
+motif1<-new("pfm", mat=motif, name="Human Positive", 
+            color=colorset(alphabet="AA",colorScheme="chemistry"))
+plot(motif1)
+
+set <- Tcell_v3_human  %>%
+  filter(pep_length == 9 & stringr::str_detect(qualitative_measure,
+                                             pattern = "Negative") &
+           class == "I") %>% 
+  pull(description)
+set = AAStringSet(set)
+pcm <- consensusMatrix(set)
+
+# 如何展示motif 矩阵
+library(motifStack)
+motif<-pcm2pfm(pcm)
+motif2<-new("pfm", mat=motif, name="Human Negative", 
+            color=colorset(alphabet="AA",colorScheme="chemistry"))
+plot(motif2)
+
+# 随机各取出1000 进行比较展示
+motifs <- list(motif1,motif2)
+motifStack(motifs)
+```
+
+### 人来源的长度为18的peptide的seqlogo
+```{r message=FALSE, warning=FALSE}
+# 如何从一系列sequence中生成motif 矩阵
+set <- Tcell_v3_human  %>%
+  filter(pep_length == 15 & stringr::str_detect(qualitative_measure,
+                                             pattern = "Positive") &
+           class == "II") %>% 
+  pull(description)
+set = AAStringSet(set)
+pcm <- consensusMatrix(set)
+# 如何展示motif 矩阵
+library(motifStack)
+motif<-pcm2pfm(pcm)
+motif<-new("pfm", mat=motif, name="Human Positive", 
+            color=colorset(alphabet="AA",colorScheme="chemistry"))
+plot(motif)
+
+set <- Tcell_v3_human  %>%
+  filter(pep_length == 15 & stringr::str_detect(qualitative_measure,
+                                             pattern = "Negative") &
+           class == "II") %>%
+  pull(description)
+set = AAStringSet(set)
+pcm <- consensusMatrix(set)
+library(seqLogo)
+# 如何展示motif 矩阵
+library(motifStack)
+motif<-pcm2pfm(pcm)
+motif<-new("pfm", mat=motif, name="Human Negative", 
+            color=colorset(alphabet="AA",colorScheme="chemistry"))
+p2 <- plot(motif)
+```
+
+### 不同阳性强度的motif 之间的区别
+
+```{r message=FALSE, warning=FALSE}
+set <- Tcell_v3_human  %>%
+  filter(pep_length == 9 & class == "I") %>% 
+  group_by(qualitative_measure) %>% 
+  sample_n(.,size = 72,replace = TRUE) %>% select(c("description","qualitative_measure"))
+
+set_list <- list()
+for(i in 1:5){
+  group <- unique(set$qualitative_measure)
+  set_list[[group[[i]]]] <- set$description[which(set$qualitative_measure == group[[i]])]
+}
+motifs <- purrr::map(set_list,AAStringSet) %>% purrr::map(.,consensusMatrix) %>% purrr::map(.,pcm2pfm)
+
+motifs_list <- list()
+for(i in names(motifs)){
+  motifs_list[[i]] <- new("pfm", mat=motifs[[i]],name=i,
+                      color=colorset(alphabet="AA",colorScheme="chemistry"))
+}
+#motifStack(motifs_list)
+motifStack(motifs_list, layout="treeview")
+```
+
+参考文章中的信息，我们可以看到：
+![](~/Desktop/figure1.png)
+所有物种来源的态度，都有潜力作为新抗原的起始肽段。
+
+# 参考资料
+
+1. https://zhuanlan.zhihu.com/p/96993644
+
+2. https://www.bioconductor.org/packages/release/bioc/vignettes/motifStack/inst/doc/motifStack_HTML.html#Examples_of_using_motifStack
+
+3. Neopepsee: accurate genome-level prediction of
+neoantigens by harnessing sequence and amino acid
+immunogenicity information
