@@ -33,7 +33,7 @@ Attention:
 ------------
 
 具体示意图如下：
-!()[https://github.com/yujijun/neoantigenML/blob/main/image/deredundancy.jpg]
+!()[https://github.com/yujijun/neoantigenML/blob/main/image/deredundancy.png]
 
 Reference:
 1. please refer to https://mlr3book.mlr-org.com/ for detail usage about mlr3. 
