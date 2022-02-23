@@ -7,11 +7,9 @@
 library(tidyverse)
 positive <- read.delim2("./data-raw/final.pos.neoantigens.filtered.tsv")
 negative <-  read.delim2("./data-raw/final.neg.neoantigens.filtered.tsv")
-positive.pep  <- positive %>%
-  select(c(1,2,3)) %>%
+positive.pep  <- positive[,1:3] %>%
   mutate(judge = 1)
-negative.pep <- negative %>%
-  select(c(1,2,3)) %>%
+negative.pep <- negative[,1:3] %>%
   mutate(judge = 0)
 Neodataset <- rbind(positive.pep,negative.pep) %>%
   mutate(Length = str_length(wild_Peptide)) %>%
@@ -27,11 +25,24 @@ usethis::use_data(peptides,overwrite = T)
 MLtestData <- read.csv("./data-raw/output.property.csv")
 MLtestData <- MLtestData %>%
   mutate(judge = as.factor(Neodataset$judge)) %>%
-  select(!X)
+  dplyr::select(!X)
 MLtestData <- MLtestData[which(rowSums(is.na(MLtestData)) == 0),]
 usethis::use_data(MLtestData,overwrite = T)
 
-#### IEDB human host and mus host datasets ####
-load("./result/yjj/Tcell_deredundancy_hostMus.RData")
-IEDBHostMus <- Tcell_deredundancy_all.hostMus %>%
-  select(description,judge.final)
+# #### IEDB human host and mus host datasets ####
+# deredundancy.allhuman <- read.delim("./result/yjj/Tcell_deredundancy_all.human.clean.tsv")
+# peptides.allhuman <- deredundancy.allhuman %>%
+#   pull(description)
+# deredundancy.allmouse <- read.delim("./result/yjj/Tcell_deredundancy_all.mouse.clean.tsv")
+# peptides.allmouse <- deredundancy.allmouse %>%
+#   pull(description)
+# deredundancy.all <- read.delim("./result/yjj/Tcell_deredundancy_all.clean.tsv")
+# peptides.allmouse <- deredundancy.allmouse %>%
+#   pull(description)
+# usethis::use_data(deredundancy.allhuman,deredundancy.allmouse,deredundancy.all,
+#                   peptides.allhuman,peptides.allmouse,peptides.all,overwrite = T)
+#
+
+# #### Feature Matrix ####
+# #use_data of calculated by CreatFeatureMatrix.R in ./main_running folder
+# usethis::use_data(mousetestML,overwrite = TRUE)

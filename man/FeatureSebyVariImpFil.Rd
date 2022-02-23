@@ -7,7 +7,7 @@
 FeatureSebyVariImpFil(
   dataset = MLtestData,
   target = "judge",
-  taskid = "MLtest",
+  taskid = "FeatureSebyVariImpFil",
   filtermethodVI = c("classif.ranger", "classif.rpart", "classif.xgboost")
 )
 }

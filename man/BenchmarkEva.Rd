@@ -5,7 +5,7 @@
 \title{Title Benchmark calculation
 In particular unique combination of Task,Learner and Resampling.}
 \usage{
-BenchmarkEva(tasks, learners, resamplings)
+BenchmarkEva(tasks, learners, resamplings = "none")
 }
 \arguments{
 \item{tasks}{A vector of task}

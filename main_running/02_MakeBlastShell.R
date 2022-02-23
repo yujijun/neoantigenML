@@ -18,18 +18,19 @@
 #### retrieve reffasta from Uniprot seq ####
 load("./result/yjj/Tcell_deredundancy_all.distinct.RData")
 Uniprot.name <- unique(Tcell_deredundancy_all.distinct$uniprot_5)
-library(Biostrings)
-uniprot.fasta <- readAAStringSet("./data-raw/uniprot_sprot.fasta", format="fasta",
-                                 nrec=-1L, skip=0L, seek.first.rec=FALSE, use.names=TRUE)
-for(i in Uniprot.name){
-  i_uniportname <- grep(x = names(uniprot.fasta),pattern = i,value = T)
-  if(is_empty(i_uniportname) == FALSE){
-    i_uniportfasta <- uniprot.fasta[i_uniportname]
-    output_name = paste0(i,".fasta")
-    writeXStringSet(i_uniportfasta,filepath = paste0("./result/iedb_fasta/",output_name))
-  }
-}
-#lots of fasta info couldn't be find from uniprotKB,download them by link in IEDB directly may be a better choose.
+# library(Biostrings)
+# uniprot.fasta <- readAAStringSet("./data-raw/uniprot_sprot.fasta", format="fasta",
+#                                  nrec=-1L, skip=0L, seek.first.rec=FALSE, use.names=TRUE)
+# for(i in Uniprot.name){
+#   i_uniportname <- grep(x = names(uniprot.fasta),pattern = i,value = T)
+#   if(is_empty(i_uniportname) == FALSE){
+#     i_uniportfasta <- uniprot.fasta[i_uniportname]
+#     output_name = paste0(i,".fasta")
+#     writeXStringSet(i_uniportfasta,filepath = paste0("./result/iedb_fasta/",output_name))
+#   }
+# }
+# #lots of fasta info couldn't be find from uniprotKB,download them by link in IEDB directly may be a better choose.
+
 allfastawww <- paste0("wget https://www.uniprot.org/uniprot/",
                       Uniprot.name,".fasta")
 allfastawww <- as.data.frame(allfastawww)

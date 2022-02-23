@@ -7,7 +7,7 @@
 FeatureSeByFilter(
   dataset = MLtestData,
   target = "judge",
-  taskid = "MLtest",
+  taskid = "FeatureSeByFilter",
   filtermethod = c("anova", "auc", "cmim", "disr", "find_correlation", "importance",
     "information_gain", "jmi", "jmim", "kruskal_test", "mim", "mrmr", "njmim",
     "performance", "permutation", "relief", "variance"),

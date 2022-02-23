@@ -7,9 +7,9 @@
 FeatureSebyAuto(
   dataset = MLtestData,
   target = "judge",
-  taskid = "MLtest",
+  taskid = "FeatureSebyAuto",
   filtermethodlrn = "classif.rpart",
-  nevals = 10,
+  nevals = 20,
   fselector = "random_search"
 )
 }

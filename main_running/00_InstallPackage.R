@@ -40,7 +40,27 @@ packages <- c( "data.table",
               "ranger",
               "glmnet",
               "e1071",
-              "motifStack") # list of packages to load
+              "motifStack",
+              "stringdist",
+              "plotfunctions",
+              "groupdata2",
+              "Deducer",
+              "BBmisc", "car",
+              "cvAUC",
+              "DescTools",
+              "doParallel",
+              "doSNOW",
+              "extraTrees",
+              "fst",
+              "ggpubr",
+              "ggsci",
+              "mlr",
+              "psych",
+              "randomForestSRC",
+              "rlecuyer",
+              "seqinr",
+              "stringdist",
+              "survminer") # list of packages to load
 n_packages <- length(packages) # count how many packages are required
 new.pkg <- packages[!(packages %in% installed.packages())] # determine which packages aren't installed
 # install missing packages

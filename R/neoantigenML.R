@@ -130,6 +130,8 @@ neoML.all <- function(Neodataset = MLtestData,
   at = AutoTuner$new(learner, resampling, measure, terminator, tuner)
   outer_resampling = rsmp("cv", folds = outercv)
   rr = resample(task, at, outer_resampling, store_models = TRUE)
-  return(rr)
+  result.list <- list(at = at,
+                      rr = rr)
+  return(result.list)
 }
 

@@ -8,9 +8,9 @@ Use this function in specific ML methods}
 FeatureWrapperMethod(
   dataset = MLtestData,
   target = "judge",
-  taskid = "MLtest",
-  filtermethodlrn = "classif.rpart",
-  nevals = 10
+  taskid = "FeatureWrapperMethod",
+  filtermethodlrn = "FeatureWrapperMethod",
+  nevals = 20
 )
 }
 \arguments{

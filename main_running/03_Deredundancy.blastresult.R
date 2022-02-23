@@ -79,6 +79,7 @@ Tcell_v3_clean <- Tcell_v3_clean[-1,]
 Tcell_v3_clean <- janitor::clean_names(Tcell_v3_clean)
 
 redundancy <- read.delim(file = "./result/yjj/deredundancy.blast.tsv")
+
 #### 添加肽段频率信息 ####
 pep.num <- c()
 for(i in redundancy$V1){

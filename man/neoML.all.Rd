@@ -24,7 +24,7 @@ neoML.all(
 
 \item{target}{A column name of prediction target in Neodataset}
 
-\item{tunningkey}{A character of mlr_tuning_spaces c(classif.glmnet.rbv2,classif.kknn.rbv2,classif.ranger.rbv2,classif.svm.rbv2,classif.xgboost.rbv2,)}
+\item{tunningkey}{A character of mlr_tuning_spaces c(classif.glmnet.rbv2,classif.kknn.rbv2,classif.ranger.rbv2,classif.svm.rbv2,classif.xgboost.default)}
 
 \item{evalsnum}{the numbers of iterations evaluation}
 
@@ -46,4 +46,5 @@ Title glmnet/kknn/range/svm/xgboost training model
 }
 \examples{
 neoML.glmnet(MLtestData)
+The evaluation of Tunning Space
 }

@@ -24,10 +24,10 @@ library(ggpubr)
 mytheme <- theme(
   axis.text.x = element_text(face = "bold",angle = 45,hjust = 1,size = 8),
   plot.title = element_text(face = "bold",size = 12,hjust = 0.5),
-  axis.title = element_text(face = "bold",size = 10)
-  
+  axis.title = element_text(face = "bold",size = 10),
+  text = element_text(family = "Arial")
 )
-input_folder <- "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/input/"
+input_folder <- "/Users/yujijun/Documents/work/01_新抗原项目/01_NeoantigenML/input/tcell_full_v3.csv"
 output_folder <- "/Users/yujijun/Documents/work/4_AntigenML/NeoantigenML/result/yjj/"
 ```
 
@@ -57,7 +57,7 @@ pie_function <- function(data){
 # 数据处理
 ## 数据导入
 ```{r 01-Input_IEDB, include=FALSE}
-Tcell_v3 <- read.delim(stringr::str_c(input_folder,"tcell_full_v3.csv"),sep = ",",header = T)
+Tcell_v3 <- read.delim(stringr::str_c(input_folder),sep = ",",header = T)
 dim(Tcell_v3)
 ```
 
@@ -82,7 +82,8 @@ Tcell_v3_clean <- Tcell_v3_clean %>%
   arrange(desc(pep_length))
 ## 417716
 ### 去除肽段中包含 [+] 这些
-Tcell_v3_clean <- Tcell_v3_clean[-c(grep("[+]",Tcell_v3_clean$description)),]
+Tcell_v3_clean <- Tcell_v3_clean[-c(grep("[+]",Tcell_v3_clean$description)),] %>% 
+  distinct(description,organism_name,name,qualitative_measure,allele_name,pep_length)
 ### filter bigger than 30 
 Tcell_v3_clean <- Tcell_v3_clean %>% 
   filter(pep_length <= 30)
@@ -289,8 +290,8 @@ Tcell_v3_clean %>%
   geom_text(aes(label = ..count..),stat = "count",
             colour = "black",vjust = 1.5) +
    labs(title = "Organism of peptides", x = "Organism name", y = "count") + 
-  mytheme
-
+  mytheme -> plot1
+ggsave(filename = "./")
 #https://r-graphics.org/recipe-bar-graph-labels
 ```
 

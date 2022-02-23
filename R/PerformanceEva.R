@@ -71,7 +71,7 @@ PerformanceEva <- function(task,
 #' classif.glmnet.rbv2,classif.kknn.rbv2,classif.ranger.rbv2,classif.svm.rbv2,classif.xgboost.rbv2,
 BenchmarkEva <- function(tasks,
                          learners,
-                         resamplings){
+                         resamplings = "none"){
   require("mlr3verse")
   require("data.table")
   future::plan("multisession")
@@ -80,12 +80,11 @@ BenchmarkEva <- function(tasks,
     tasks = tasks,
     learners = learners,
     resamplings = resamplings
-  )
+    )
   bmr = benchmark(design)
   measures = list(
-    msr("classif.auc", predict_sets = "train", id = "auc_train"),
-    msr("classif.auc", predict_sets = "test",id = "auc_test")
-  )
+    msr("classif.auc", predict_sets = "test", id = "auc_test"),
+    msr("classif.auc", predict_sets = "train", id = "auc_train"))
   tab = bmr$aggregate(measures)
   #ranks = tab[, .(learner_id, rank_train = rank(-auc_train), rank_test = rank(-auc_test)), by = task_id]
   #ranks = ranks[, .(mrank_train = mean(rank_train), mrank_test = mean(rank_test)), by = learner_id]
